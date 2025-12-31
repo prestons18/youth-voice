@@ -12,6 +12,7 @@
   "dependencies": {
     "@prestonarnold/fuse": "0.1.3",
     "@tailwindcss/vite": "^4.1.18",
+    "lucide": "^0.562.0",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
