@@ -1,14 +1,29 @@
 import { h, signal } from "@prestonarnold/fuse";
+import { Button } from "./components/primatives/Button";
+import { Card } from "./components/primatives/Card";
+import { PageHeader } from "./components/primatives/Header";
+import { Input } from "./components/primatives/Input";
+import { Textarea } from "./components/primatives/Textarea";
+import { VoteButton } from "./components/VoteButton";
+import { Badge } from "./components/primatives/Badge";
 
 export interface Idea {
   id: string;
   title: string;
   description: string;
   category?: string;
-  votes: number;
+  upvotes: number;
+  downvotes: number;
+  userVote?: "up" | "down" | null;
 }
 
 export const App = () => {
+  const formData = signal({
+    title: "",
+    description: "",
+    category: "",
+  });
+
   const ideas = signal<Idea[]>([
     {
       id: "1",
@@ -16,52 +31,302 @@ export const App = () => {
       description:
         "A garden project where youth can learn about nature and sustainability.",
       category: "Environment",
-      votes: 12,
+      upvotes: 15,
+      downvotes: 3,
+      userVote: null,
     },
     {
       id: "2",
       title: "Youth Coding Club",
       description: "Weekly coding workshops for local teens.",
       category: "Education",
-      votes: 8,
+      upvotes: 10,
+      downvotes: 2,
+      userVote: null,
+    },
+    {
+      id: "3",
+      title: "Town Clean-Up Initiative",
+      description:
+        "Monthly volunteer events to keep our town clean and beautiful.",
+      category: "Environment",
+      upvotes: 20,
+      downvotes: 5,
+      userVote: null,
     },
   ]);
 
-  // Add a new idea
-  const addIdea = (idea: Omit<Idea, "id" | "votes">) => {
-    const newIdea: Idea = {
-      ...idea,
-      id: Date.now().toString(),
-      votes: 0,
-    };
-    ideas.set([newIdea, ...ideas()]);
+  const handleVote = (id: string, voteType: "up" | "down") => {
+    ideas.set(
+      ideas().map((idea) => {
+        if (idea.id !== id) return idea;
+
+        const currentVote = idea.userVote;
+
+        // If clicking the same vote button again, remove the vote
+        if (currentVote === voteType) {
+          return {
+            ...idea,
+            upvotes: voteType === "up" ? idea.upvotes - 1 : idea.upvotes,
+            downvotes:
+              voteType === "down" ? idea.downvotes - 1 : idea.downvotes,
+            userVote: null,
+          };
+        }
+
+        // If changing vote type
+        if (currentVote) {
+          return {
+            ...idea,
+            upvotes: voteType === "up" ? idea.upvotes + 1 : idea.upvotes - 1,
+            downvotes:
+              voteType === "down" ? idea.downvotes + 1 : idea.downvotes - 1,
+            userVote: voteType,
+          };
+        }
+
+        // New vote
+        return {
+          ...idea,
+          upvotes: voteType === "up" ? idea.upvotes + 1 : idea.upvotes,
+          downvotes: voteType === "down" ? idea.downvotes + 1 : idea.downvotes,
+          userVote: voteType,
+        };
+      })
+    );
   };
 
-  const voteIdea = (id: string, delta: number) => {
-    const prevIdeas = ideas();
-    ideas.set(
-      prevIdeas.map((idea: Idea) =>
-        idea.id === id ? { ...idea, votes: idea.votes + delta } : idea
-      )
+  const handleSubmit = () => {
+    const data = formData();
+    if (data.title.trim() && data.description.trim()) {
+      const newIdea: Idea = {
+        id: Date.now().toString(),
+        title: data.title,
+        description: data.description,
+        category: data.category || "General",
+        upvotes: 0,
+        downvotes: 0,
+        userVote: null,
+      };
+      ideas.set([newIdea, ...ideas()]);
+      formData.set({ title: "", description: "", category: "" });
+    }
+  };
+
+  const sortedIdeas = () => {
+    return [...ideas()].sort(
+      (a, b) => b.upvotes - b.downvotes - (a.upvotes - a.downvotes)
     );
   };
 
   return (
-    <div class="app font-sans">
-      <main class="px-4 md:px-8 lg:px-16">
-        <div class="text-center py-8">
-          <h2 class="text-2xl font-bold mb-4">Ideas from the Community</h2>
-          <div class="space-y-4">
-            {ideas().map((idea) => (
-              <div key={idea.id} class="bg-white p-4 rounded-lg shadow">
-                <h3 class="font-bold text-lg">{idea.title}</h3>
-                <p class="text-gray-600">{idea.description}</p>
-                <p class="text-sm text-gray-500">Votes: {idea.votes}</p>
+    <div class="bg-[#FAFAF8] min-h-screen">
+      <PageHeader
+        title="Northamptonshire Component Library"
+        description="Maroon & Gold Design Components"
+      />
+
+      <div class="max-w-6xl mx-auto px-4 py-12">
+        <div class="flex flex-col gap-16">
+          {/* Colors */}
+          <section>
+            <h2 class="text-2xl font-bold mb-6 text-[#8B1538]">
+              Color Palette
+            </h2>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4">
+              <div>
+                <div class="h-24 rounded-lg mb-2 bg-[#8B1538] shadow-md" />
+                <p class="font-semibold text-sm">Maroon</p>
+                <p class="text-xs text-[#404040]">#8B1538</p>
               </div>
-            ))}
-          </div>
+              <div>
+                <div class="h-24 rounded-lg mb-2 bg-[#D4AF37] shadow-md" />
+                <p class="font-semibold text-sm">Gold</p>
+                <p class="text-xs text-[#404040]">#D4AF37</p>
+              </div>
+              <div>
+                <div class="h-24 rounded-lg mb-2 bg-white border-2 border-[#E5E5E5] shadow-md" />
+                <p class="font-semibold text-sm">White</p>
+                <p class="text-xs text-[#404040]">#FFFFFF</p>
+              </div>
+              <div>
+                <div class="h-24 rounded-lg mb-2 bg-[#FAFAF8] border border-[#E5E5E5] shadow-md" />
+                <p class="font-semibold text-sm">Off White</p>
+                <p class="text-xs text-[#404040]">#FAFAF8</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Buttons */}
+          <section>
+            <h2 class="text-2xl font-bold mb-6 text-[#8B1538]">Buttons</h2>
+            <Card>
+              <div class="flex flex-col gap-6">
+                <div>
+                  <h3 class="text-base font-semibold mb-3">Variants</h3>
+                  <div class="flex flex-wrap gap-3">
+                    <Button variant="primary">Primary</Button>
+                    <Button variant="secondary">Secondary</Button>
+                    <Button variant="outline">Outline</Button>
+                    <Button variant="ghost">Ghost</Button>
+                    <Button variant="primary" disabled>
+                      Disabled
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 class="text-base font-semibold mb-3">Sizes</h3>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <Button size="sm">Small</Button>
+                    <Button size="md">Medium</Button>
+                    <Button size="lg">Large</Button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 class="text-base font-semibold mb-3">With Icons</h3>
+                  <div class="flex flex-wrap gap-3">
+                    <Button icon="Send">Submit Idea</Button>
+                    <Button variant="secondary" icon="Lightbulb">
+                      New Idea
+                    </Button>
+                    <Button variant="outline" icon="TrendingUp">
+                      Popular
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </section>
+
+          {/* Badges */}
+          <section>
+            <h2 class="text-2xl font-bold mb-6 text-[#8B1538]">Badges</h2>
+            <Card>
+              <div class="flex flex-wrap gap-3">
+                <Badge>Default</Badge>
+                <Badge variant="maroon">Featured</Badge>
+                <Badge variant="gold">Popular</Badge>
+                <Badge variant="outline">Education</Badge>
+              </div>
+            </Card>
+          </section>
+
+          {/* Idea Cards */}
+          <section>
+            <h2 class="text-2xl font-bold mb-6 text-[#8B1538]">
+              Community Ideas
+              <span class="text-base font-normal text-[#404040] ml-3">
+                ({ideas().length} ideas)
+              </span>
+            </h2>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+              {() =>
+                sortedIdeas().map((idea) => (
+                  <Card hover>
+                    <div class="flex items-start justify-between mb-4">
+                      <Badge
+                        variant={
+                          idea.category === "Environment"
+                            ? "maroon"
+                            : idea.category === "Education"
+                            ? "gold"
+                            : "default"
+                        }
+                      >
+                        {idea.category}
+                      </Badge>
+                      <div class="flex items-center gap-2">
+                        <VoteButton
+                          votes={() =>
+                            ideas().find((i) => i.id === idea.id)?.upvotes || 0
+                          }
+                          hasVoted={() =>
+                            ideas().find((i) => i.id === idea.id)?.userVote ===
+                            "up"
+                          }
+                          onVote={() => handleVote(idea.id, "up")}
+                          type="upvote"
+                        />
+                        <VoteButton
+                          votes={() =>
+                            ideas().find((i) => i.id === idea.id)?.downvotes ||
+                            0
+                          }
+                          hasVoted={() =>
+                            ideas().find((i) => i.id === idea.id)?.userVote ===
+                            "down"
+                          }
+                          onVote={() => handleVote(idea.id, "down")}
+                          type="downvote"
+                        />
+                      </div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-[#1A1A1A]">
+                      {idea.title}
+                    </h3>
+                    <p class="text-base text-[#404040]">{idea.description}</p>
+                  </Card>
+                ))
+              }
+            </div>
+          </section>
+
+          {/* Forms */}
+          <section>
+            <h2 class="text-2xl font-bold mb-6 text-[#8B1538]">
+              Submit Your Idea
+            </h2>
+            <Card class="max-w-3xl">
+              <div class="flex flex-col gap-5">
+                <Input
+                  label="Idea Title"
+                  placeholder="Enter your idea title"
+                  value={() => formData().title}
+                  onInput={(e) =>
+                    formData.set({ ...formData(), title: e.target.value })
+                  }
+                  required
+                />
+
+                <Textarea
+                  label="Description"
+                  placeholder="Describe your idea in detail"
+                  value={() => formData().description}
+                  onInput={(e) =>
+                    formData.set({ ...formData(), description: e.target.value })
+                  }
+                  required
+                  rows={5}
+                />
+
+                <Input
+                  label="Category"
+                  placeholder="e.g. Environment, Education, Community"
+                  value={() => formData().category}
+                  onInput={(e) =>
+                    formData.set({ ...formData(), category: e.target.value })
+                  }
+                />
+
+                {() => (
+                  <Button
+                    icon="Send"
+                    fullWidth
+                    onClick={handleSubmit}
+                    disabled={
+                      !formData().title.trim() || !formData().description.trim()
+                    }
+                  >
+                    Submit Your Idea
+                  </Button>
+                )}
+              </div>
+            </Card>
+          </section>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
