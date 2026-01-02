@@ -1,4 +1,5 @@
 import { h } from "@prestonarnold/fuse";
+import { Signal } from "@prestonarnold/fuse";
 
 export const Textarea = ({
   label,
@@ -11,12 +12,17 @@ export const Textarea = ({
 }: {
   label?: string;
   placeholder?: string;
-  value?: any;
-  onInput: (e: any) => void;
+  value?: string | (() => string);
+  onInput: (e: Event) => void;
   rows?: number;
   required?: boolean;
   class?: string;
 }) => {
+  // Handle both direct values and signal getters
+  const getValue = () => {
+    return typeof value === "function" ? value() : value;
+  };
+
   return (
     <div class={`flex flex-col gap-2 ${className}`}>
       {label && (
@@ -25,7 +31,7 @@ export const Textarea = ({
         </label>
       )}
       <textarea
-        value={value()}
+        value={getValue()}
         onInput={onInput}
         placeholder={placeholder}
         required={required}

@@ -17,6 +17,9 @@ export const Input = ({
   required?: boolean;
   class?: string;
 }) => {
+  // Handle both signal values and direct values
+  const inputValue = typeof value === "function" ? value() : value;
+
   return (
     <div class={`flex flex-col gap-2 ${className}`}>
       {label && (
@@ -26,7 +29,7 @@ export const Input = ({
       )}
       <input
         type={type}
-        value={value()}
+        value={inputValue}
         onInput={onInput}
         placeholder={placeholder}
         required={required}
